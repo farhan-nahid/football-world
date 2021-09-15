@@ -1,10 +1,18 @@
 const displayAllTeamContainer = document.getElementById("display__all__team");
 const apiKey = 1;
+const spinner = document.getElementById("spinner");
+spinner.style.display = "none";
+
+//display teams
 
 const collectTeams = () => {
+  spinner.style.display = "block";
   fetch(`https://www.thesportsdb.com/api/v1/json/${apiKey}/all_leagues.php`)
     .then((res) => res.json())
-    .then((team) => displayTeam(team.leagues));
+    .then((team) => {
+      spinner.style.display = "none";
+      displayTeam(team.leagues);
+    });
 };
 
 collectTeams();
@@ -18,21 +26,64 @@ const displayTeam = (allTeams) => {
     teamDiv.innerHTML = ` 
         <h1>${strLeague}</h1>
         <h3>Type: ${strSport}</h3>
-        <button onclick=displayDetails(${idLeague})>Details</button> 
+        <center>
+          <button class="btn" onclick=displayDetails(${idLeague})>Details</button>
+        </center> 
     `;
     displayAllTeamContainer.appendChild(teamDiv);
   }
 };
 
+// search team
+
+document
+  .getElementById("team__search__button")
+  .addEventListener("click", () => {
+    const input = document.getElementById("team__search__input");
+    const inputValue = input.value;
+    input.value = "";
+    spinner.style.display = "block";
+    fetch(
+      `https://www.thesportsdb.com/api/v1/json/${apiKey}/searchteams.php?t=${inputValue}`
+    )
+      .then((res) => res.json())
+      .then((allTeams) => {
+        spinner.style.display = "none";
+        displaySearchResult(allTeams.teams);
+      });
+  });
+
+const displaySearchResult = (teams) => {
+  displayAllTeamContainer.textContent = "";
+  for (const team of teams) {
+    const { strLeague, strSport, idLeague } = team;
+    const teamDiv = document.createElement("div");
+    teamDiv.setAttribute("class", "card");
+    teamDiv.innerHTML = ` 
+        <h1>${strLeague}</h1>
+        <h3>Type: ${strSport}</h3>
+        <center>
+          <button class="btn" onclick=displayDetails(${idLeague})>Details</button>
+        </center> 
+    `;
+    displayAllTeamContainer.appendChild(teamDiv);
+  }
+};
+
+// open modal & show details
+
 const displayDetails = (id) => {
+  spinner.style.display = "block";
   fetch(
     `https://www.thesportsdb.com/api/v1/json/${apiKey}/lookupleague.php?id=${id}`
   )
     .then((res) => res.json())
-    .then((team) => openModal(team.leagues[0]));
+    .then((team) => {
+      spinner.style.display = "none";
+      openModal(team.leagues[0]);
+    });
 };
 
-// open modal & show details
 const modalContainer = document.getElementById("team__detail");
 const openModal = (team) => {
   console.log(team);
@@ -74,7 +125,9 @@ const openModal = (team) => {
           <h4>Invent: ${dateFirstEvent} </h4>
           <h4>Tv Rights: ${strTvRights} </h4>
           <h4>Gender: ${strGender} </h4>  
-          <p class="copyright">&copy; Copyright All Right Reserved By Farhan</p>
+          <p class="copyright">&copy; Copyright All Right Reserved By
+            <a href="https://github.com/farhan-nahid/" target="_blank">Farhan</a>
+          </p>
         </div>
   `;
 
